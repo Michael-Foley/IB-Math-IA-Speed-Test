@@ -12,7 +12,7 @@
 	}\
 }while(0)
 
-#define ITERATIONS 500000000
+#define ITERATIONS 250000000
 
 #define MAKE_INT_TEST(type) do{ \
 	type * randomData = malloc(sizeof(type) * ITERATIONS); \
