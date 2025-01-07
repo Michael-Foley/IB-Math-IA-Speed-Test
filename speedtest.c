@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <float.h>
+#include <math.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define CHECKMALLOC(ptr) do{\
 	if(ptr == NULL){\
@@ -12,7 +15,7 @@
 	}\
 }while(0)
 
-#define ITERATIONS 100000000
+#define ITERATIONS 1000000000
 
 #define MAKE_INT_TEST(type) do{ \
 	type * randomData = malloc(sizeof(type) * ITERATIONS); \
@@ -42,12 +45,20 @@
 	} \
 	end = clock(); \
 	printf( # type " division time: %f\n", (double)(end - start) / CLOCKS_PER_SEC); \
+	start = clock(); \
+	for(size_t i = 1; i < ITERATIONS; i += 2){ \
+		intType += randomData[i-1] % randomData[i]; \
+	} \
+	end = clock(); \
+	printf( # type " modulus time: %f\n", (double)(end - start) / CLOCKS_PER_SEC); \
 	free(randomData); \
 	printf("Dump: %d\n", (int) intType); \
 	printf("===\n"); \
 }while(0)
 
 int main(int argc, char* argv[]){
+	long pid = (long)getpid();
+	printf("PID: %ld, press enter to continue\n", pid);
 	getchar();
 	/*
 	if(argc != 2){
@@ -85,76 +96,6 @@ int main(int argc, char* argv[]){
 	randomUnsignedData = malloc(ITERATIONS * sizeof(*randomUnsignedData));
 	CHECKMALLOC(randomUnsignedData);
 
-
-	/*
-	for(size_t i = 0; i < ITERATIONS; i++){
-		randomUnsignedData[i] = (uint32_t)rand();
-		if(randomUnsignedData[i] == 0){
-			randomUnsignedData[i] = 1;
-		}
-	}
-	
-	// unsigned int loops
-	start = clock();
-	for(size_t i = 0; i < ITERATIONS; i++){
-		unsignedTest += randomUnsignedData[i]; // This is a bit hacky but is valid
-	}
-	end = clock();
-	printf("u32 addition time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-	start = clock();
-	for(size_t i = 0; i < ITERATIONS; i++){
-		unsignedTest *= randomUnsignedData[i];
-	}
-	end = clock();
-	printf("u32 multiplication time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-	start = clock();
-	for(size_t i = 0; i < ITERATIONS; i++){
-		unsignedTest /= randomUnsignedData[i];
-	}
-	end = clock();
-	printf("u32 division time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
-	
-	free(randomUnsignedData);
-
-	printf("===\n");
-
-	randomSignedData = malloc(ITERATIONS * sizeof(*randomSignedData));
-	CHECKMALLOC(randomSignedData);
-
-	for(size_t i = 0; i < ITERATIONS; i++){
-		randomSignedData[i] = (int32_t)rand();
-		if(randomSignedData[i] == 0){
-			randomSignedData[i] = 1;
-		}
-	}
-
-	// signed int loops
-	start = clock();
-	for(size_t i = 0; i < ITERATIONS; i++){
-		signedTest += randomSignedData[i];
-	}
-	end = clock();
-	printf("i32 addition time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-	start = clock();
-	for(size_t i = 0; i < ITERATIONS; i++){
-		signedTest *= randomSignedData[i];
-	}
-	end = clock();
-	printf("i32 multiplication time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-	start = clock();
-	for(size_t i = 0; i < ITERATIONS; i++){
-		signedTest /= randomSignedData[i];
-	}
-	end = clock();
-	printf("i32 division time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-	free(randomSignedData);
-	*/
-
 	randomFloatData = malloc(ITERATIONS * sizeof(*randomFloatData));
 	CHECKMALLOC(randomFloatData);
 
@@ -187,6 +128,13 @@ int main(int argc, char* argv[]){
 	}
 	end = clock();
 	printf("float division time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
+
+	start = clock();
+	for(size_t i = 0; i < ITERATIONS; i++){
+		floatTest += (randomFloatData[i-1] / randomFloatData[i] - (int)(randomFloatData[i-1] / randomFloatData[i])) * randomFloatData[i-1];
+	}
+	end = clock();
+	printf("float modulus time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
 
 	free(randomFloatData);
 
@@ -224,6 +172,13 @@ int main(int argc, char* argv[]){
 	}
 	end = clock();
 	printf("double division time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
+
+	start = clock();
+	for(size_t i = 0; i < ITERATIONS; i++){
+		doubleTest += fmod(randomDoubleData[i-1], randomDoubleData[i]);
+	}
+	end = clock();
+	printf("double modulus time: %f\n", (double)(end - start) / CLOCKS_PER_SEC);
 
 	free(randomDoubleData);
 
